@@ -226,5 +226,9 @@
     "download": "Télécharger",
     "downloadingUpdate": "Téléchargement de la mise à jour...",
     "noApkFound": "Aucun fichier APK trouvé dans la version.",
-    "downloadFailed": "Le téléchargement a échoué"
+    "downloadFailed": "Le téléchargement a échoué",
+    "loginWithSso": "Se connecter avec SSO",
+    "close": "Fermer",
+    "or": "OU",
+    "exampleUrl": "Ex: 192.168.1.100:8080 ou http://romm.local:8080"
 }

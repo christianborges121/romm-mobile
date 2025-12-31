@@ -232,5 +232,12 @@
     "manageFirmware": "Gestisci Firmware",
     "errorLoadingFirmware": "Errore caricamento firmware",
     "downloadComplete": "Download completato",
-    "noFirmwareFound": "Nessun firmware trovato"
+    "noFirmwareFound": "Nessun firmware trovato",
+    "loginSuccess": "Login effettuato con successo",
+    "sessionCheckFailed": "Verifica sessione fallita",
+    "ssoVerificationFailed": "Verifica SSO fallita",
+    "loginWithSso": "Accedi con SSO",
+    "close": "Chiudi",
+    "or": "O",
+    "exampleUrl": "Es: 192.168.1.100:8080 o http://romm.local:8080"
 }

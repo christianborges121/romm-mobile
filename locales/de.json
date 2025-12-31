@@ -224,5 +224,9 @@
     "errorOpeningFile": "Fehler beim Öffnen der Datei",
     "downloadingUpdate": "Update wird heruntergeladen...",
     "noApkFound": "Keine APK-Datei in der Version gefunden.",
-    "downloadFailed": "Download fehlgeschlagen"
+    "downloadFailed": "Download fehlgeschlagen",
+    "loginWithSso": "Mit SSO anmelden",
+    "close": "Schließen",
+    "or": "ODER",
+    "exampleUrl": "Bsp: 192.168.1.100:8080 oder http://romm.local:8080"
 }

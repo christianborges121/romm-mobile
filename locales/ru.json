@@ -224,5 +224,9 @@
     "errorOpeningFile": "Ошибка при открытии файла",
     "downloadingUpdate": "Загрузка обновления...",
     "noApkFound": "В релизе не найден APK-файл.",
-    "downloadFailed": "Ошибка загрузки"
+    "downloadFailed": "Ошибка загрузки",
+    "loginWithSso": "Войти через SSO",
+    "close": "Закрыть",
+    "or": "ИЛИ",
+    "exampleUrl": "Прим: 192.168.1.100:8080 или http://romm.local:8080"
 }

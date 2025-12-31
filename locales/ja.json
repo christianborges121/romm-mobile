@@ -224,5 +224,9 @@
     "errorOpeningFile": "ファイルを開く際にエラーが発生しました",
     "downloadingUpdate": "アップデートをダウンロード中...",
     "noApkFound": "リリースにAPKファイルが見つかりませんでした。",
-    "downloadFailed": "ダウンロードに失敗しました"
+    "downloadFailed": "ダウンロードに失敗しました",
+    "loginWithSso": "SSOでログイン",
+    "close": "閉じる",
+    "or": "または",
+    "exampleUrl": "例：192.168.1.100:8080 または http://romm.local:8080"
 }

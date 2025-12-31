@@ -224,5 +224,9 @@
     "errorOpeningFile": "Fout bij het openen van bestand",
     "downloadingUpdate": "Update downloaden...",
     "noApkFound": "Geen APK-bestand gevonden in de release.",
-    "downloadFailed": "Download Mislukt"
+    "downloadFailed": "Download Mislukt",
+    "loginWithSso": "Inloggen met SSO",
+    "close": "Sluiten",
+    "or": "OF",
+    "exampleUrl": "Bijv: 192.168.1.100:8080 of http://romm.local:8080"
 }

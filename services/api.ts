@@ -159,6 +159,7 @@ class ApiClient {
     public baseUrl: string;
     private credentials: LoginCredentials | null = null;
     private credentialsLoaded: boolean = false;
+    private isSessionValid: boolean = false;
 
     constructor() {
         // Try load url from secure storage
@@ -499,11 +500,28 @@ class ApiClient {
 
     // Token management
     isAuthenticated(): boolean {
-        return this.credentials !== null;
+        return this.credentials !== null || this.isSessionValid;
     }
 
     async clearAuth(): Promise<void> {
         await this.removeCredentialsFromStorage();
+        this.isSessionValid = false;
+    }
+
+    async checkSession(): Promise<boolean> {
+        try {
+            // Try to fetch the current user to see if the session cookie is valid
+            const user = await this.getCurrentUser();
+            if (user) {
+                console.log('Session is valid for user:', user.username);
+                this.isSessionValid = true;
+                return true;
+            }
+        } catch (error) {
+            console.log('Session check failed:', error);
+        }
+        this.isSessionValid = false;
+        return false;
     }
 }
 

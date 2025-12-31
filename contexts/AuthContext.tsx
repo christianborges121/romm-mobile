@@ -72,7 +72,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
             setIsLoading(true);
             await apiClient.logout();
-            
+
         } catch (error) {
             console.error('Logout error:', error);
             // Continue with logout even if API call fails
@@ -99,7 +99,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                 if (apiClient.isAuthenticated()) {
                     await refreshUser();
                 } else {
-                    setUser(null);
+                    // Try to check session (for OAuth/Cookie auth)
+                    const isSessionValid = await apiClient.checkSession();
+                    if (isSessionValid) {
+                        await refreshUser();
+                    } else {
+                        setUser(null);
+                    }
                 }
             } catch (error) {
                 console.error('Auth initialization error:', error);

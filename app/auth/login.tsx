@@ -4,6 +4,9 @@ import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     KeyboardAvoidingView,
+    Modal,
+    Platform,
+    SafeAreaView,
     ScrollView,
     StyleSheet,
     Text,
@@ -11,9 +14,10 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { PublicRoute } from '../../components/ProtectedRoute';
+import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
-import { useLogin } from '../../hooks/useAuth';
 import { useTranslation } from '../../hooks/useTranslation';
 import { LoginCredentials, apiClient } from '../../services/api';
 
@@ -24,9 +28,10 @@ export default function LoginScreen() {
     });
     const [serverUrl, setServerUrl] = useState<string>('http://romm:8080');
     const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'failed'>('checking');
-    const { login, isLoading, error, clearError } = useLogin();
+    const [showSsoWebView, setShowSsoWebView] = useState(false);
+    const { login, isLoading, error, clearError, refreshUser } = useAuth();
     const { t } = useTranslation();
-    const { showErrorToast } = useToast();
+    const { showErrorToast, showSuccessToast } = useToast();
     const router = useRouter();
 
     // Load saved server URL on component mount
@@ -138,10 +143,73 @@ export default function LoginScreen() {
         }
     };
 
+    const handleSsoLogin = () => {
+        const formattedUrl = formatUrl(serverUrl);
+        apiClient.updateBaseUrl(formattedUrl);
+        setShowSsoWebView(true);
+    };
+
+    const handleWebViewNavigationStateChange = async (navState: any) => {
+        const { url } = navState;
+        console.log('WebView URL:', url);
+
+        // Check if we are redirected to the home page or a success page
+        // The API docs say /api/oauth/openid redirects to home page on success
+        // We can check if the URL is the base URL (with or without trailing slash)
+        const baseUrl = apiClient.baseUrl;
+        const cleanUrl = url.replace(/\/$/, '').toLowerCase();
+        const cleanBaseUrl = baseUrl.replace(/\/$/, '').toLowerCase();
+
+        // Check if we are back at the base URL
+        // We also check if the URL starts with the base URL and doesn't contain /api/login or /api/oauth
+        // This covers cases where we might be redirected to /library or /# etc.
+        const isBackAtHome = cleanUrl === cleanBaseUrl ||
+            (cleanUrl.startsWith(cleanBaseUrl) &&
+                !cleanUrl.includes('/api/login') &&
+                !cleanUrl.includes('/api/oauth') &&
+                !cleanUrl.includes('/auth/'));
+
+        if (isBackAtHome || cleanUrl.includes('/?login=success')) {
+            console.log('Detected return to home, checking session...');
+            // Add a small delay to ensure cookies are set
+            setTimeout(() => checkSessionAndClose(), 1000);
+        }
+    };
+
+    const checkSessionAndClose = async () => {
+        try {
+            const isValid = await apiClient.checkSession();
+            if (isValid) {
+                await refreshUser(); // Update global auth state
+                setShowSsoWebView(false);
+                showSuccessToast(t('loginSuccess'), t('success'));
+                router.replace('/');
+            } else {
+                console.log('Session check failed after redirect');
+            }
+        } catch (error) {
+            console.error('SSO verification failed:', error);
+        }
+    };
+
+    const handleCloseModal = async () => {
+        // When closing manually, we also check the session just in case
+        const isValid = await apiClient.checkSession();
+        if (isValid) {
+            await refreshUser(); // Update global auth state
+            setShowSsoWebView(false);
+            showSuccessToast(t('loginSuccess'), t('success'));
+            router.replace('/');
+        } else {
+            setShowSsoWebView(false);
+        }
+    };
+
     return (
         <PublicRoute>
             <KeyboardAvoidingView
                 style={styles.container}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
                 <ScrollView contentContainerStyle={styles.scrollContainer}>
                     <View style={styles.formContainer}>
@@ -190,7 +258,7 @@ export default function LoginScreen() {
                             />
                             <Text style={styles.urlHint}>
                                 {t('serverUrlHint')} {'\n'}
-                                Es: 192.168.1.100:8080 o http://romm.local:8080
+                                {t('exampleUrl')}
                             </Text>
                         </View>
 
@@ -240,9 +308,89 @@ export default function LoginScreen() {
                                 <Text style={styles.loginButtonText}>{t('login')}</Text>
                             )}
                         </TouchableOpacity>
+
+                        <View style={styles.divider}>
+                            <View style={styles.dividerLine} />
+                            <Text style={styles.dividerText}>{t('or')}</Text>
+                            <View style={styles.dividerLine} />
+                        </View>
+
+                        <TouchableOpacity
+                            style={[styles.ssoButton, isLoading && styles.disabledButton]}
+                            onPress={handleSsoLogin}
+                            disabled={isLoading}
+                        >
+                            <Text style={styles.ssoButtonText}>{t('loginWithSso')}</Text>
+                        </TouchableOpacity>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            <Modal
+                visible={showSsoWebView}
+                animationType="slide"
+                presentationStyle="pageSheet"
+                onRequestClose={handleCloseModal}
+            >
+                <SafeAreaView style={styles.modalContainer}>
+                    <View style={styles.modalHeader}>
+                        <Text style={styles.modalTitle}>{t('loginWithSso')}</Text>
+                        <TouchableOpacity onPress={handleCloseModal} style={styles.closeButton}>
+                            <Text style={styles.closeButtonText}>{t('close')}</Text>
+                        </TouchableOpacity>
+                    </View>
+                    <WebView
+                        source={{ uri: `${apiClient.baseUrl}/api/login/openid` }}
+                        onNavigationStateChange={handleWebViewNavigationStateChange}
+                        startInLoadingState={true}
+                        renderLoading={() => <ActivityIndicator size="large" color="#5f43b2" style={styles.loader} />}
+                        sharedCookiesEnabled={true}
+                        thirdPartyCookiesEnabled={true}
+                        userAgent="Mozilla/5.0 (Linux; Android 10; Android SDK built for x86) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36"
+                        injectedJavaScriptBeforeContentLoaded={`
+                            // Disable WebAuthn to force fallback
+                            window.PublicKeyCredential = undefined;
+                        `}
+                        injectedJavaScript={`
+                            const consoleLog = console.log;
+                            const consoleWarn = console.warn;
+                            const consoleError = console.error;
+                            
+                            console.log = (...args) => {
+                                window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'log', message: args.join(' ') }));
+                                consoleLog(...args);
+                            };
+                            console.warn = (...args) => {
+                                window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'warn', message: args.join(' ') }));
+                                consoleWarn(...args);
+                            };
+                            console.error = (...args) => {
+                                window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'error', message: args.join(' ') }));
+                                consoleError(...args);
+                            };
+                            true;
+                        `}
+                        onMessage={(event) => {
+                            try {
+                                const data = JSON.parse(event.nativeEvent.data);
+                                console.log(`[WebView ${data.type.toUpperCase()}]`, data.message);
+                            } catch (e) {
+                                console.log('[WebView Message]', event.nativeEvent.data);
+                            }
+                        }}
+                        onError={(syntheticEvent) => {
+                            const { nativeEvent } = syntheticEvent;
+                            console.warn('WebView error: ', nativeEvent);
+                            showErrorToast(`WebView Error: ${nativeEvent.description}`, t('error'));
+                        }}
+                        onHttpError={(syntheticEvent) => {
+                            const { nativeEvent } = syntheticEvent;
+                            console.warn('WebView HTTP error: ', nativeEvent);
+                            // Don't show toast for 401/403 as they might be part of the flow, but good to log
+                        }}
+                    />
+                </SafeAreaView>
+            </Modal>
         </PublicRoute>
     );
 }
@@ -348,28 +496,71 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '600',
     },
-    forgotPasswordButton: {
+    ssoButton: {
+        backgroundColor: '#333',
+        borderRadius: 8,
+        padding: 16,
         alignItems: 'center',
-        padding: 8,
+        marginBottom: 16,
+        borderWidth: 1,
+        borderColor: '#555',
     },
-    forgotPasswordText: {
-        color: '#5f43b2',
+    ssoButtonText: {
+        color: '#fff',
         fontSize: 16,
+        fontWeight: '600',
     },
-    urlToggleButton: {
+    divider: {
+        flexDirection: 'row',
         alignItems: 'center',
-        padding: 12,
-        marginBottom: 10,
+        marginBottom: 16,
     },
-    urlToggleText: {
-        color: '#5f43b2',
-        fontSize: 16,
-        fontWeight: '500',
+    dividerLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: '#333',
+    },
+    dividerText: {
+        color: '#666',
+        paddingHorizontal: 10,
+        fontSize: 14,
     },
     urlHint: {
         color: '#888',
         fontSize: 12,
         marginTop: 5,
         fontStyle: 'italic',
+    },
+    modalContainer: {
+        flex: 1,
+        backgroundColor: '#1a1a1a',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#333',
+        backgroundColor: '#000',
+    },
+    modalTitle: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    closeButton: {
+        padding: 8,
+    },
+    closeButtonText: {
+        color: '#5f43b2',
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    loader: {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        zIndex: 1,
     },
 });
