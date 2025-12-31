@@ -540,6 +540,22 @@ export default function SettingsScreen() {
 
                 </View>}
 
+                {/* Firmware Section */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>{t('firmware') || 'Firmware'}</Text>
+                    <Text style={styles.sectionDescription}>
+                        {t('firmwareDescription') || 'Download system firmware files needed for some emulators.'}
+                    </Text>
+
+                    <TouchableOpacity
+                        style={[styles.button, styles.selectButton]}
+                        onPress={() => router.push('/firmware')}
+                    >
+                        <Ionicons name="hardware-chip-outline" size={20} color="#fff" />
+                        <Text style={styles.buttonText}>{t('manageFirmware') || 'Manage Firmware'}</Text>
+                    </TouchableOpacity>
+                </View>
+
                 {/* Download Settings Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>{t('downloadSettings')}</Text>

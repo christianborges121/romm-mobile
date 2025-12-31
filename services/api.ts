@@ -114,6 +114,24 @@ export interface Rom {
     ra_id?: number;
 }
 
+export interface Firmware {
+    id: number;
+    file_name: string;
+    file_name_no_tags: string;
+    file_name_no_ext: string;
+    file_extension: string;
+    file_path: string;
+    file_size_bytes: number;
+    full_path: string;
+    is_verified: boolean;
+    crc_hash: string;
+    md5_hash: string;
+    sha1_hash: string;
+    missing_from_fs: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
 export type SearchOrderCriteria = 'name' | 'fs_size_bytes' | 'created_at' | 'first_release_date' | 'average_rating';
 export type SearchOrderDirection = 'asc' | 'desc';
 
@@ -299,9 +317,9 @@ class ApiClient {
     }
 
     async getRomsByCollection(collectionId: string, isVirtual: boolean, limit: number = 10, offset: number = 0, includeSiblings: boolean = true): Promise<ItemsResponse<Rom>> {
-        
+
         let roms;
-        
+
         if (isVirtual) {
             roms = await this.request<ItemsResponse<Rom>>(`/api/roms?group_by_meta_id=1&virtual_collection_id=${collectionId}&limit=${limit}&offset=${offset}`);
         } else {
@@ -375,6 +393,17 @@ class ApiClient {
             console.log('Fetched siblings for ROM:', rom.name, 'Total siblings:', rom.files.length);
         }
         return rom;
+    }
+
+    async getFirmwareList(platformId?: number): Promise<Firmware[]> {
+        const url = platformId ? `/api/firmware?platform_id=${platformId}` : '/api/firmware';
+        return this.request<Firmware[]>(url);
+    }
+
+    async obtainFirmwareDownloadLink(firmware: Firmware): Promise<string> {
+        await this.waitForCredentialsLoad();
+        const url = `${this.baseUrl}/api/firmware/${firmware.id}/content/${encodeURI(firmware.file_name)}`;
+        return url;
     }
 
     async obtainDownloadLink(romFile: RomFile): Promise<string> {

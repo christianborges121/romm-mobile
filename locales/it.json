@@ -226,5 +226,11 @@
     "download": "Scarica",
     "downloadingUpdate": "Scaricamento aggiornamento...",
     "noApkFound": "Nessun file APK trovato nella release.",
-    "downloadFailed": "Download Fallito"
+    "downloadFailed": "Download fallito",
+    "firmware": "Firmware",
+    "firmwareDescription": "Scarica i file firmware di sistema necessari per alcuni emulatori.",
+    "manageFirmware": "Gestisci Firmware",
+    "errorLoadingFirmware": "Errore caricamento firmware",
+    "downloadComplete": "Download completato",
+    "noFirmwareFound": "Nessun firmware trovato"
 }

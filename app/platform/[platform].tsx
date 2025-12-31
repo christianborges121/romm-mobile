@@ -21,7 +21,6 @@ import { useDynamicColumns } from '../../hooks/useDynamicColumns';
 import { usePlatformFolders } from '../../hooks/usePlatformFolders';
 import { useRomFileSystem } from '../../hooks/useRomFileSystem';
 import { usePlatform, useRoms } from '../../hooks/useRoms';
-import { useStorageAccessFramework } from '../../hooks/useStorageAccessFramework';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Rom } from '../../services/api';
 
@@ -62,7 +61,7 @@ export default function PlatformScreen() {
     // Fetch ROMs when platform data is loaded
     useEffect(() => {
         fetchRomsByPlatform(platformId);
-        
+
     }, [platformId]);
 
     // Monitor completed downloads to refresh ROM status
@@ -88,7 +87,7 @@ export default function PlatformScreen() {
     useEffect(() => {
         Promise.all(roms.map(async rom => {
 
-            if(!currentPlatform) return;
+            if (!currentPlatform) return;
             const platformFolder = await searchPlatformFolder(currentPlatform);
             if (!platformFolder) return;
             await Promise.all(rom.files.map(file => {
@@ -375,6 +374,12 @@ export default function PlatformScreen() {
                         >
                             <Ionicons name="folder-outline" size={20} color="#fff" />
                         </TouchableOpacity>}
+                        <TouchableOpacity
+                            style={styles.folderButton}
+                            onPress={() => router.push({ pathname: '/firmware', params: { platformId } })}
+                        >
+                            <Ionicons name="hardware-chip-outline" size={20} color="#fff" />
+                        </TouchableOpacity>
                         <TouchableOpacity
                             style={[
                                 styles.downloadAllButton,

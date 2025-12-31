@@ -224,5 +224,11 @@
     "download": "Download",
     "downloadingUpdate": "Downloading update...",
     "noApkFound": "No APK file found in the release.",
-    "downloadFailed": "Download Failed"
+    "downloadFailed": "Download Failed",
+    "firmware": "Firmware",
+    "firmwareDescription": "Download system firmware files needed for some emulators.",
+    "manageFirmware": "Manage Firmware",
+    "errorLoadingFirmware": "Error loading firmware",
+    "downloadComplete": "Download complete",
+    "noFirmwareFound": "No firmware found"
 }
