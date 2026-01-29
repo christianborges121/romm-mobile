@@ -67,6 +67,7 @@ export const ServerProvider: React.FC<ServerProviderProps> = ({ children }) => {
     // Initialize server info on app start
     useEffect(() => {
         refreshServerInfo();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const value: ServerContextType = {
