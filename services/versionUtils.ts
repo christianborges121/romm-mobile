@@ -8,8 +8,8 @@
  * @param version2 Second version string (e.g., "4.5.0")
  * @returns 1 if version1 > version2, -1 if version1 < version2, 0 if equal
  * 
- * Note: This function only handles basic semantic versions (major.minor.patch).
- * Pre-release versions (e.g., "4.6.0-beta.1") and build metadata are not supported.
+ * Note: Pre-release versions (e.g., "4.6.0-beta.1") and build metadata (e.g., "4.6.0+build123")
+ * are handled by stripping them before comparison. Only the numeric parts are compared.
  */
 export function compareVersions(version1: string, version2: string): number {
     // Extract only the numeric parts (major.minor.patch)
@@ -28,7 +28,7 @@ export function compareVersions(version1: string, version2: string): number {
         
         // Check for invalid numbers
         if (isNaN(v1) || isNaN(v2)) {
-            console.warn(`Invalid version format: ${version1} or ${version2}`);
+            console.warn(`Invalid version format detected. Version 1: ${version1}, Version 2: ${version2}`);
             return 0;
         }
         
