@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import { isVersionAtLeast } from './versionUtils';
 
 
 const DEFAULT_API_URL = 'http://romm:8080';
@@ -160,12 +161,13 @@ export interface HeartbeatResponse {
         VERSION: string;
         SHOW_SETUP_WIZARD: boolean;
     };
-    METADATA_SOURCES?: any;
-    FILESYSTEM?: any;
-    EMULATION?: any;
-    FRONTEND?: any;
-    OIDC?: any;
-    TASKS?: any;
+    // Optional fields that we don't need to use, keeping as unknown for type safety
+    METADATA_SOURCES?: unknown;
+    FILESYSTEM?: unknown;
+    EMULATION?: unknown;
+    FRONTEND?: unknown;
+    OIDC?: unknown;
+    TASKS?: unknown;
 }
 
 class ApiClient {
@@ -201,26 +203,9 @@ class ApiClient {
         this.serverVersion = version;
     }
 
-    // Helper function to compare semantic versions
-    private compareVersions(version1: string, version2: string): number {
-        const v1Parts = version1.split('.').map(Number);
-        const v2Parts = version2.split('.').map(Number);
-        
-        for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
-            const v1 = v1Parts[i] || 0;
-            const v2 = v2Parts[i] || 0;
-            
-            if (v1 > v2) return 1;
-            if (v1 < v2) return -1;
-        }
-        
-        return 0;
-    }
-
     // Check if server version is at least the specified version
     private isServerVersionAtLeast(minVersion: string): boolean {
-        if (!this.serverVersion) return false;
-        return this.compareVersions(this.serverVersion, minVersion) >= 0;
+        return isVersionAtLeast(this.serverVersion, minVersion);
     }
 
     private async loadCredentialsFromStorage(): Promise<void> {

@@ -1,5 +1,6 @@
-import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import React, { createContext, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 import { apiClient, HeartbeatResponse } from '../services/api';
+import { compareVersions } from '../services/versionUtils';
 
 interface ServerContextType {
     serverVersion: string | null;
@@ -22,34 +23,18 @@ interface ServerProviderProps {
     children: ReactNode;
 }
 
-// Helper function to compare semantic versions
-const compareVersions = (version1: string, version2: string): number => {
-    const v1Parts = version1.split('.').map(Number);
-    const v2Parts = version2.split('.').map(Number);
-    
-    for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
-        const v1 = v1Parts[i] || 0;
-        const v2 = v2Parts[i] || 0;
-        
-        if (v1 > v2) return 1;
-        if (v1 < v2) return -1;
-    }
-    
-    return 0;
-};
-
 export const ServerProvider: React.FC<ServerProviderProps> = ({ children }) => {
     const [serverVersion, setServerVersion] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    const refreshServerInfo = async () => {
+    const refreshServerInfo = useCallback(async () => {
         try {
             setIsLoading(true);
             const heartbeat = await apiClient.getHeartbeat();
             const version = heartbeat.SYSTEM.VERSION;
             setServerVersion(version);
             apiClient.setServerVersion(version);
-            console.log('Server version:', version);
+            console.debug('Server version:', version);
         } catch (error) {
             console.error('Failed to fetch server info:', error);
             // Don't set error state - we'll try again later
@@ -57,18 +42,17 @@ export const ServerProvider: React.FC<ServerProviderProps> = ({ children }) => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, []);
 
-    const isServerVersionAtLeast = (minVersion: string): boolean => {
+    const isServerVersionAtLeast = useCallback((minVersion: string): boolean => {
         if (!serverVersion) return false;
         return compareVersions(serverVersion, minVersion) >= 0;
-    };
+    }, [serverVersion]);
 
     // Initialize server info on app start
     useEffect(() => {
         refreshServerInfo();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [refreshServerInfo]);
 
     const value: ServerContextType = {
         serverVersion,
