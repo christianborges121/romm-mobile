@@ -4,6 +4,8 @@ import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../hooks/useTranslation';
 
+import type { RedirectProps } from 'expo-router';
+
 interface ProtectedRouteProps {
     children: ReactNode;
     fallback?: ReactNode;
@@ -85,8 +87,6 @@ export const AdminRoute: React.FC<AdminRouteProps> = (props) => {
         </View>
     );
 };
-
-import type { RedirectProps } from 'expo-router';
 
 interface PublicRouteProps {
     children: ReactNode;

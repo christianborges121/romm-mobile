@@ -155,11 +155,25 @@ export interface ItemsResponse<T> {
     per_page?: number;
 }
 
+export interface HeartbeatResponse {
+    SYSTEM: {
+        VERSION: string;
+        SHOW_SETUP_WIZARD: boolean;
+    };
+    METADATA_SOURCES?: any;
+    FILESYSTEM?: any;
+    EMULATION?: any;
+    FRONTEND?: any;
+    OIDC?: any;
+    TASKS?: any;
+}
+
 class ApiClient {
     public baseUrl: string;
     private credentials: LoginCredentials | null = null;
     private credentialsLoaded: boolean = false;
     private isSessionValid: boolean = false;
+    private serverVersion: string | null = null;
 
     constructor() {
         // Try load url from secure storage
@@ -180,6 +194,33 @@ class ApiClient {
     updateBaseUrl(newUrl: string): void {
         // Remove trailing slash if present
         this.baseUrl = newUrl.replace(/\/$/, '');
+    }
+
+    // Method to set server version
+    setServerVersion(version: string): void {
+        this.serverVersion = version;
+    }
+
+    // Helper function to compare semantic versions
+    private compareVersions(version1: string, version2: string): number {
+        const v1Parts = version1.split('.').map(Number);
+        const v2Parts = version2.split('.').map(Number);
+        
+        for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
+            const v1 = v1Parts[i] || 0;
+            const v2 = v2Parts[i] || 0;
+            
+            if (v1 > v2) return 1;
+            if (v1 < v2) return -1;
+        }
+        
+        return 0;
+    }
+
+    // Check if server version is at least the specified version
+    private isServerVersionAtLeast(minVersion: string): boolean {
+        if (!this.serverVersion) return false;
+        return this.compareVersions(this.serverVersion, minVersion) >= 0;
     }
 
     private async loadCredentialsFromStorage(): Promise<void> {
@@ -363,7 +404,12 @@ class ApiClient {
     }
 
     async getRomsByPlatform(platformId: number, limit: number = 20, offset: number = 0, includeSiblings: boolean = true): Promise<ItemsResponse<Rom>> {
-        const res = await this.request<ItemsResponse<Rom>>(`/api/roms?platform_id=${platformId}&limit=${limit}&offset=${offset}&group_by_meta_id=1`);
+        // Use platform_ids parameter for server version >= 4.6.0, otherwise use platform_id
+        const platformParam = this.isServerVersionAtLeast('4.6.0') 
+            ? `platform_ids=${platformId}` 
+            : `platform_id=${platformId}`;
+        
+        const res = await this.request<ItemsResponse<Rom>>(`/api/roms?${platformParam}&limit=${limit}&offset=${offset}&group_by_meta_id=1`);
         const roms = res.items;
 
         // Fetch siblings for each ROM
@@ -440,6 +486,10 @@ class ApiClient {
             console.error('Error during heartbeat check:', error);
             return false;
         }
+    }
+
+    async getHeartbeat(): Promise<HeartbeatResponse> {
+        return this.request<HeartbeatResponse>('/api/heartbeat');
     }
 
     async login(credentials: LoginCredentials): Promise<MessageResponse> {

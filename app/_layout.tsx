@@ -5,6 +5,7 @@ import Toast from 'react-native-toast-message';
 import { AuthProvider } from '../contexts/AuthContext';
 import { DownloadProvider } from '../contexts/DownloadContext';
 import { LanguageProvider } from '../contexts/LanguageContext';
+import { ServerProvider } from '../contexts/ServerContext';
 import { ToastProvider } from '../contexts/ToastContext';
 
 export default function RootLayout() {
@@ -12,27 +13,29 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <LanguageProvider>
         <ToastProvider>
-          <AuthProvider>
-            <DownloadProvider>
-              <StatusBar style="light" />
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  headerStyle: {
-                    backgroundColor: '#000',
-                  },
-                  headerTintColor: '#fff',
-                  headerTitleStyle: {
-                    fontWeight: 'bold',
-                  },
-                  contentStyle: {
-                    backgroundColor: '#000',
-                  },
-                }}
-              />
-              <Toast />
-            </DownloadProvider>
-          </AuthProvider>
+          <ServerProvider>
+            <AuthProvider>
+              <DownloadProvider>
+                <StatusBar style="light" />
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    headerStyle: {
+                      backgroundColor: '#000',
+                    },
+                    headerTintColor: '#fff',
+                    headerTitleStyle: {
+                      fontWeight: 'bold',
+                    },
+                    contentStyle: {
+                      backgroundColor: '#000',
+                    },
+                  }}
+                />
+                <Toast />
+              </DownloadProvider>
+            </AuthProvider>
+          </ServerProvider>
         </ToastProvider>
       </LanguageProvider>
     </SafeAreaProvider>
