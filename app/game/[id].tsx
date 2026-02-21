@@ -214,7 +214,7 @@ export default function GameDetailsScreen() {
             }
 
             console.log('Platform folder found:', platformFolder.folderUri);
-            var files
+            let files
 
             if (RNPlatform.OS === 'android') {
                 files = (await SAF.listFiles(platformFolder.folderUri)).map(file => file.name);
@@ -298,7 +298,7 @@ export default function GameDetailsScreen() {
                                 throw new Error(t('platformFolderNotFound'));
                             }
 
-                            var fileList;
+                            let fileList;
 
                             if (RNPlatform.OS === 'android') {
                                 fileList = (await SAF.listFiles(platformFolder.folderUri)).map(file => file.name);
