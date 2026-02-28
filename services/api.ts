@@ -1,5 +1,4 @@
 import * as SecureStore from 'expo-secure-store';
-import { isVersionAtLeast } from './versionUtils';
 
 
 const DEFAULT_API_URL = 'http://romm:8080';
@@ -201,11 +200,6 @@ class ApiClient {
     // Method to set server version
     setServerVersion(version: string): void {
         this.serverVersion = version;
-    }
-
-    // Check if server version is at least the specified version
-    private isServerVersionAtLeast(minVersion: string): boolean {
-        return isVersionAtLeast(this.serverVersion, minVersion);
     }
 
     private async loadCredentialsFromStorage(): Promise<void> {
